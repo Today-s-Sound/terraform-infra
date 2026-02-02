@@ -1,0 +1,84 @@
+// Grafana Alloy Configuration
+// Collects logs, metrics, and traces
+
+// Prometheus Remote Write
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}
+
+// Loki Remote Write
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+// Scrape local metrics
+prometheus.scrape "alloy" {
+  targets = [{
+    __address__ = "localhost:12345",
+  }]
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+// Scrape Docker container logs
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = []
+  forward_to = [loki.write.default.receiver]
+
+  relabel_rules = [
+    {
+      source_labels = ["__meta_docker_container_name"]
+      target_label  = "container"
+    },
+    {
+      source_labels = ["__meta_docker_container_log_stream"]
+      target_label  = "stream"
+    },
+  ]
+}
+
+// Scrape system logs
+loki.source.file "system_logs" {
+  targets = [
+    {
+      __path__ = "/var/log/syslog",
+      job      = "system",
+      host     = "gcp-instance",
+    },
+    {
+      __path__ = "/var/log/auth.log",
+      job      = "auth",
+      host     = "gcp-instance",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// OTLP receiver for traces and metrics
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+    logs    = [otelcol.exporter.loki.default.input]
+  }
+}
+
+// Export OTLP metrics to Prometheus
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+// Export OTLP logs to Loki
+otelcol.exporter.loki "default" {
+  forward_to = [loki.write.default.receiver]
+}

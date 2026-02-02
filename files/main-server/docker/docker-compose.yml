@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - app-network
+
+  # Your application container (example)
+  # Uncomment and modify according to your app
+  # app:
+  #   image: your-app-image:latest
+  #   container_name: app
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - REDIS_URL=redis://redis:6379
+  #     - NODE_ENV=production
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - app-network
+
+volumes:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

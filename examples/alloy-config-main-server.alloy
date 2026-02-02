@@ -1,0 +1,138 @@
+// Grafana Alloy Configuration for Main Server (Spring Boot)
+// Sends metrics and logs to Monitoring Server
+
+// ============================================
+// Remote Write Endpoints (Monitoring Server)
+// ============================================
+
+// Send metrics to Prometheus on Monitoring Server
+prometheus.remote_write "monitoring" {
+  endpoint {
+    url = "http://MONITORING_SERVER_IP:9090/api/v1/write"
+
+    // Optional: Add authentication if needed
+    // basic_auth {
+    //   username = "prometheus"
+    //   password = env("PROMETHEUS_PASSWORD")
+    // }
+  }
+}
+
+// Send logs to Loki on Monitoring Server
+loki.write "monitoring" {
+  endpoint {
+    url = "http://MONITORING_SERVER_IP:3100/loki/api/v1/push"
+  }
+}
+
+// ============================================
+// Metrics Collection
+// ============================================
+
+// Scrape Spring Boot Actuator metrics
+prometheus.scrape "spring_boot" {
+  targets = [{
+    __address__      = "spring-app:8080",
+    __metrics_path__ = "/actuator/prometheus",
+    job              = "spring-boot-app",
+    instance         = "main-server",
+  }]
+
+  forward_to = [prometheus.remote_write.monitoring.receiver]
+
+  scrape_interval = "15s"
+}
+
+// Scrape Redis metrics (if redis_exporter is added)
+// prometheus.scrape "redis" {
+//   targets = [{
+//     __address__ = "redis:6379",
+//     job         = "redis",
+//     instance    = "main-server",
+//   }]
+//   forward_to = [prometheus.remote_write.monitoring.receiver]
+// }
+
+// Scrape Alloy's own metrics
+prometheus.scrape "alloy" {
+  targets = [{
+    __address__ = "localhost:12345",
+    job         = "alloy-agent",
+    instance    = "main-server",
+  }]
+  forward_to = [prometheus.remote_write.monitoring.receiver]
+}
+
+// ============================================
+// Log Collection
+// ============================================
+
+// Collect Docker container logs (Spring Boot, Redis)
+loki.source.docker "containers" {
+  host    = "unix:///var/run/docker.sock"
+  targets = []
+
+  forward_to = [loki.write.monitoring.receiver]
+
+  relabel_rules = [
+    {
+      source_labels = ["__meta_docker_container_name"]
+      regex         = "/(.*)"
+      target_label  = "container"
+    },
+    {
+      source_labels = ["__meta_docker_container_log_stream"]
+      target_label  = "stream"
+    },
+    {
+      action       = "replace"
+      replacement  = "main-server"
+      target_label = "host"
+    },
+  ]
+}
+
+// Collect system logs
+loki.source.file "system_logs" {
+  targets = [
+    {
+      __path__ = "/var/log/syslog",
+      job      = "system",
+      host     = "main-server",
+    },
+    {
+      __path__ = "/var/log/auth.log",
+      job      = "auth",
+      host     = "main-server",
+    },
+  ]
+
+  forward_to = [loki.write.monitoring.receiver]
+}
+
+// ============================================
+// OTLP Receiver (Optional - for distributed tracing)
+// ============================================
+
+// Uncomment if you want to collect OpenTelemetry traces
+// otelcol.receiver.otlp "default" {
+//   grpc {
+//     endpoint = "0.0.0.0:4317"
+//   }
+//   http {
+//     endpoint = "0.0.0.0:4318"
+//   }
+//
+//   output {
+//     metrics = [otelcol.exporter.prometheus.default.input]
+//     logs    = [otelcol.exporter.loki.default.input]
+//   }
+// }
+//
+// otelcol.exporter.prometheus "default" {
+//   forward_to = [prometheus.remote_write.monitoring.receiver]
+// }
+//
+// otelcol.exporter.loki "default" {
+//   forward_to = [loki.write.monitoring.receiver]
+// }
