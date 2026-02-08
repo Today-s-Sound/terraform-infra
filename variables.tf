@@ -1,58 +1,80 @@
 variable "prefix" {
   description = "This prefix will be included in the name of most resources."
-}
-
-variable "project_id" {
-  description = "The GCP project ID where the resources will be created."
-  default     = "Today-Sound"
+  default     = "todaysound"
 }
 
 variable "region" {
-  description = "The region where the resources are created."
-  default     = "asia-northeast3"
-}
-
-variable "zone" {
-  description = "The zone where the compute instance will be created."
-  default     = "asia-northeast3-a"
-}
-
-variable "subnet_prefix" {
-  description = "The address prefix to use for the subnet."
-  default     = "10.0.10.0/24"
-}
-
-variable "machine_type" {
-  description = "Specifies the GCP machine type for monitoring server."
-  default     = "e2-small"
-}
-
-variable "main_server_machine_type" {
-  description = "Specifies the GCP machine type for main application server."
-  default     = "e2-medium"
-}
-
-variable "height" {
-  default     = "400"
-  description = "Image height in pixels."
-}
-
-variable "width" {
-  default     = "600"
-  description = "Image width in pixels."
-}
-
-variable "placeholder" {
-  default     = "placekitten.com"
-  description = "Image-as-a-service URL. Some other fun ones to try are fillmurray.com, placecage.com, placebeard.it, loremflickr.com, baconmockup.com, placeimg.com, placebear.com, placeskull.com, stevensegallery.com, placedog.net"
+  description = "The AWS region where resources are created."
+  default     = "ap-northeast-2"
 }
 
 variable "environment" {
   type        = string
-  description = "Define infrastructure’s environment"
+  description = "Define infrastructure's environment"
   default     = "dev"
   validation {
     condition     = contains(["dev", "qa", "prod"], var.environment)
     error_message = "The environment value must be dev, qa, or prod."
   }
+}
+
+# EC2 Instance Types
+variable "main_instance_type" {
+  description = "EC2 instance type for main application server."
+  default     = "t3.medium"
+}
+
+variable "monitoring_instance_type" {
+  description = "EC2 instance type for monitoring server."
+  default     = "t3.small"
+}
+
+variable "loadtest_instance_type" {
+  description = "EC2 instance type for load test server."
+  default     = "t3.medium"
+}
+
+variable "enable_loadtest" {
+  description = "Enable or disable load test server."
+  type        = bool
+  default     = false
+}
+
+# RDS
+variable "db_instance_class" {
+  description = "RDS instance class."
+  default     = "db.t3.micro"
+}
+
+variable "db_name" {
+  description = "Name of the PostgreSQL database."
+  default     = "todaysound"
+}
+
+variable "db_username" {
+  description = "Master username for RDS."
+  sensitive   = true
+}
+
+variable "db_password" {
+  description = "Master password for RDS."
+  sensitive   = true
+}
+
+# S3
+variable "s3_bucket_name" {
+  description = "S3 bucket name for presigned URL uploads."
+}
+
+# Route53
+variable "domain_name" {
+  description = "Domain name for Route53 hosted zone. Leave empty to skip."
+  default     = ""
+}
+
+# Security
+variable "allowed_ssh_cidrs" {
+  description = "CIDR blocks allowed to SSH into servers."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
 }

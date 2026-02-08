@@ -77,7 +77,7 @@ resource "google_compute_firewall" "hashicat_monitoring" {
 
   allow {
     protocol = "tcp"
-    ports    = ["3000", "9090", "3100", "12345"]  # Grafana, Prometheus, Loki, Alloy
+    ports    = ["3000", "9090", "3100", "12345"] # Grafana, Prometheus, Loki, Alloy
   }
 
   source_ranges = ["0.0.0.0/0"]
@@ -90,7 +90,7 @@ resource "google_compute_firewall" "hashicat_otlp" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4317", "4318"]  # OTLP gRPC, OTLP HTTP
+    ports    = ["4317", "4318"] # OTLP gRPC, OTLP HTTP
   }
 
   source_ranges = ["0.0.0.0/0"]
