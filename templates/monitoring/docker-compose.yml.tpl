@@ -46,13 +46,13 @@ services:
       - tempo-data:/var/tempo
     command: -config.file=/etc/tempo/tempo.yaml
 
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
     restart: unless-stopped
     ports:
-      - "9187:9187"
+      - "9104:9104"
     environment:
-      - DATA_SOURCE_NAME=postgresql://${db_username}:${db_password}@${rds_address}:5432/${db_name}?sslmode=require
+      - DATA_SOURCE_NAME=${db_username}:${db_password}@tcp(${rds_address}:3306)/${db_name}
 
 volumes:
   prometheus-data:

@@ -34,12 +34,12 @@ output "loadtest_server_ip" {
 # RDS Outputs
 output "rds_endpoint" {
   value       = module.rds.endpoint
-  description = "RDS PostgreSQL endpoint"
+  description = "RDS MySQL endpoint"
 }
 
 output "rds_address" {
   value       = module.rds.address
-  description = "RDS PostgreSQL hostname"
+  description = "RDS MySQL hostname"
 }
 
 # S3 Outputs

@@ -223,24 +223,24 @@ resource "aws_security_group" "loadtest" {
   }
 }
 
-# RDS SG: PostgreSQL from main server only
+# RDS SG: MySQL from main server only
 resource "aws_security_group" "rds" {
   name        = "${var.prefix}-rds-sg"
-  description = "Security group for RDS PostgreSQL"
+  description = "Security group for RDS MySQL"
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description     = "PostgreSQL from main server"
-    from_port       = 5432
-    to_port         = 5432
+    description     = "MySQL from main server"
+    from_port       = 3306
+    to_port         = 3306
     protocol        = "tcp"
     security_groups = [aws_security_group.main.id]
   }
 
   ingress {
-    description     = "PostgreSQL from monitoring server (postgres_exporter)"
-    from_port       = 5432
-    to_port         = 5432
+    description     = "MySQL from monitoring server (mysqld_exporter)"
+    from_port       = 3306
+    to_port         = 3306
     protocol        = "tcp"
     security_groups = [aws_security_group.monitoring.id]
   }

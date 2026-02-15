@@ -1,4 +1,4 @@
-# RDS PostgreSQL
+# RDS MySQL
 
 resource "aws_db_subnet_group" "main" {
   name       = "${var.prefix}-db-subnet-group"
@@ -10,9 +10,9 @@ resource "aws_db_subnet_group" "main" {
 }
 
 resource "aws_db_instance" "main" {
-  identifier     = "${var.prefix}-postgres"
-  engine         = "postgres"
-  engine_version = "15"
+  identifier     = "${var.prefix}-mysql"
+  engine         = "mysql"
+  engine_version = "8.0"
 
   instance_class    = var.instance_class
   allocated_storage = 20
@@ -32,7 +32,7 @@ resource "aws_db_instance" "main" {
   multi_az                = false
 
   tags = {
-    Name        = "${var.prefix}-postgres"
+    Name        = "${var.prefix}-mysql"
     Environment = var.environment
   }
 }
