@@ -26,7 +26,7 @@ variable "main_instance_type" {
 
 variable "monitoring_instance_type" {
   description = "EC2 instance type for monitoring server."
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "loadtest_instance_type" {

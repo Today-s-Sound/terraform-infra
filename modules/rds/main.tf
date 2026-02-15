@@ -2,7 +2,7 @@
 
 resource "aws_db_subnet_group" "main" {
   name       = "${var.prefix}-db-subnet-group"
-  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+  subnet_ids = var.subnet_ids
 
   tags = {
     Name = "${var.prefix}-db-subnet-group"
@@ -14,7 +14,7 @@ resource "aws_db_instance" "main" {
   engine         = "postgres"
   engine_version = "15"
 
-  instance_class    = var.db_instance_class
+  instance_class    = var.instance_class
   allocated_storage = 20
   storage_type      = "gp3"
 
@@ -23,10 +23,10 @@ resource "aws_db_instance" "main" {
   password = var.db_password
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.rds.id]
+  vpc_security_group_ids = var.sg_ids
 
-  skip_final_snapshot       = var.environment != "prod"
-  final_snapshot_identifier = var.environment == "prod" ? "${var.prefix}-final-snapshot" : null
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.prefix}-${var.environment}-final-snapshot"
 
   backup_retention_period = var.environment == "prod" ? 7 : 1
   multi_az                = false

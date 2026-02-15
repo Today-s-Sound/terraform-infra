@@ -1,61 +1,61 @@
 # Main Server Outputs
 output "main_server_ip" {
-  value       = aws_eip.main.public_ip
+  value       = module.main_server.eip_public_ip
   description = "Main application server public IP"
 }
 
 output "main_server_url" {
-  value       = "http://${aws_eip.main.public_ip}"
+  value       = "http://${module.main_server.eip_public_ip}"
   description = "Main application server URL"
 }
 
 # Monitoring Server Outputs
 output "monitoring_server_ip" {
-  value       = aws_eip.monitoring.public_ip
+  value       = module.monitoring.public_ip
   description = "Monitoring server public IP"
 }
 
 output "monitoring_ssh_tunnel_commands" {
   value = {
-    grafana    = "ssh -i ${local.private_key_filename} -L 3000:localhost:3000 ubuntu@${aws_eip.monitoring.public_ip}"
-    prometheus = "ssh -i ${local.private_key_filename} -L 9090:localhost:9090 ubuntu@${aws_eip.monitoring.public_ip}"
-    loki       = "ssh -i ${local.private_key_filename} -L 3100:localhost:3100 ubuntu@${aws_eip.monitoring.public_ip}"
-    alloy      = "ssh -i ${local.private_key_filename} -L 12345:localhost:12345 ubuntu@${aws_eip.monitoring.public_ip}"
+    grafana    = "ssh -i ${local.private_key_filename} -L 3000:localhost:3000 ubuntu@${module.monitoring.public_ip}"
+    prometheus = "ssh -i ${local.private_key_filename} -L 9090:localhost:9090 ubuntu@${module.monitoring.public_ip}"
+    loki       = "ssh -i ${local.private_key_filename} -L 3100:localhost:3100 ubuntu@${module.monitoring.public_ip}"
+    alloy      = "ssh -i ${local.private_key_filename} -L 12345:localhost:12345 ubuntu@${module.monitoring.public_ip}"
   }
   description = "SSH tunnel commands for monitoring services"
 }
 
 # Load Test Server Outputs
 output "loadtest_server_ip" {
-  value       = var.enable_loadtest ? aws_eip.loadtest[0].public_ip : null
+  value       = var.enable_loadtest ? module.loadtest[0].public_ip : null
   description = "Load test server public IP (null if disabled)"
 }
 
 # RDS Outputs
 output "rds_endpoint" {
-  value       = aws_db_instance.main.endpoint
+  value       = module.rds.endpoint
   description = "RDS PostgreSQL endpoint"
 }
 
 output "rds_address" {
-  value       = aws_db_instance.main.address
+  value       = module.rds.address
   description = "RDS PostgreSQL hostname"
 }
 
 # S3 Outputs
 output "s3_bucket_name" {
-  value       = aws_s3_bucket.main.bucket
+  value       = module.s3.bucket_name
   description = "S3 bucket name"
 }
 
 output "s3_bucket_arn" {
-  value       = aws_s3_bucket.main.arn
+  value       = module.s3.bucket_arn
   description = "S3 bucket ARN"
 }
 
 # Route53 Outputs
 output "route53_nameservers" {
-  value       = var.domain_name != "" ? aws_route53_zone.main[0].name_servers : null
+  value       = module.route53.nameservers
   description = "Route53 nameservers (set these at your domain registrar)"
 }
 
@@ -70,15 +70,15 @@ output "ssh_private_key" {
 output "servers_summary" {
   value = {
     main_server = {
-      ip   = aws_eip.main.public_ip
+      ip   = module.main_server.eip_public_ip
       role = "Spring Boot + Redis"
     }
     monitoring_server = {
-      ip   = aws_eip.monitoring.public_ip
+      ip   = module.monitoring.public_ip
       role = "Prometheus + Grafana + Loki + Alloy (SSH tunnel)"
     }
     loadtest_server = {
-      ip   = var.enable_loadtest ? aws_eip.loadtest[0].public_ip : "disabled"
+      ip   = var.enable_loadtest ? module.loadtest[0].public_ip : "disabled"
       role = "K6 + Locust + Apache Bench"
     }
   }

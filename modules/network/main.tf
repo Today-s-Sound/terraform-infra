@@ -139,10 +139,10 @@ resource "aws_security_group" "main" {
   }
 }
 
-# Monitoring Server SG: SSH only (access via SSH tunneling)
+# Monitoring Server SG: SSH + internal monitoring ports
 resource "aws_security_group" "monitoring" {
   name        = "${var.prefix}-monitoring-sg"
-  description = "Security group for monitoring server (SSH tunnel access)"
+  description = "Security group for monitoring server"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -151,6 +151,38 @@ resource "aws_security_group" "monitoring" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = var.allowed_ssh_cidrs
+  }
+
+  ingress {
+    description = "Prometheus remote write from VPC"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    description = "Loki push from VPC"
+    from_port   = 3100
+    to_port     = 3100
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    description = "Tempo OTLP gRPC from VPC"
+    from_port   = 4317
+    to_port     = 4317
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  ingress {
+    description = "Tempo OTLP HTTP from VPC"
+    from_port   = 4318
+    to_port     = 4318
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -203,6 +235,14 @@ resource "aws_security_group" "rds" {
     to_port         = 5432
     protocol        = "tcp"
     security_groups = [aws_security_group.main.id]
+  }
+
+  ingress {
+    description     = "PostgreSQL from monitoring server (postgres_exporter)"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.monitoring.id]
   }
 
   egress {

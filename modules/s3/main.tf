@@ -1,14 +1,14 @@
 # S3 Bucket for presigned URL uploads
 
 resource "aws_s3_bucket" "main" {
-  bucket = var.s3_bucket_name
+  bucket = var.bucket_name
 
   lifecycle {
     prevent_destroy = true
   }
 
   tags = {
-    Name        = var.s3_bucket_name
+    Name        = var.bucket_name
     Environment = var.environment
   }
 }
