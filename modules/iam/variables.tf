@@ -8,7 +8,7 @@ variable "environment" {
   type        = string
 }
 
-variable "s3_bucket_arn" {
-  description = "S3 bucket ARN for policy"
-  type        = string
+variable "s3_bucket_arns" {
+  description = "List of S3 bucket ARNs for policy"
+  type        = list(string)
 }

@@ -64,28 +64,42 @@ module "network" {
 module "s3" {
   source = "./modules/s3"
 
-  bucket_name = var.s3_bucket_name
-  environment = var.environment
+  bucket_name       = var.s3_bucket_name
+  environment       = var.environment
+  enable_versioning = true
+  enable_cors       = true
+}
+
+module "s3_logs" {
+  source = "./modules/s3"
+
+  bucket_name              = var.s3_logs_bucket_name
+  environment              = var.environment
+  enable_versioning        = false
+  enable_cors              = false
+  enable_lifecycle         = true
+  lifecycle_expiration_days = 90
 }
 
 module "iam" {
   source = "./modules/iam"
 
-  prefix        = var.prefix
-  environment   = var.environment
-  s3_bucket_arn = module.s3.bucket_arn
+  prefix         = var.prefix
+  environment    = var.environment
+  s3_bucket_arns = [module.s3.bucket_arn, module.s3_logs.bucket_arn]
 }
 
 module "monitoring" {
   source = "./modules/compute"
 
-  ami_id        = data.aws_ami.ubuntu.id
-  instance_type = var.monitoring_instance_type
-  key_name      = aws_key_pair.main.key_name
-  subnet_id     = module.network.public_subnet_a_id
-  sg_ids        = [module.network.sg_monitoring_id]
-  volume_size   = 50
-  create_eip    = false
+  ami_id               = data.aws_ami.ubuntu.id
+  instance_type        = var.monitoring_instance_type
+  key_name             = aws_key_pair.main.key_name
+  subnet_id            = module.network.public_subnet_a_id
+  sg_ids               = [module.network.sg_monitoring_id]
+  volume_size          = 50
+  create_eip           = false
+  iam_instance_profile = module.iam.instance_profile_name
 
   user_data = templatefile("${path.module}/templates/monitoring/userdata.sh.tpl", {
     compose_content     = templatefile("${path.module}/templates/monitoring/docker-compose.yml.tpl", {
@@ -95,7 +109,10 @@ module "monitoring" {
       rds_address = module.rds.address
     })
     prometheus_config   = file("${path.module}/templates/monitoring/prometheus.yml")
-    loki_config         = file("${path.module}/templates/monitoring/loki-config.yml")
+    loki_config         = templatefile("${path.module}/templates/monitoring/loki-config.yml.tpl", {
+      aws_region          = var.region
+      s3_logs_bucket_name = var.s3_logs_bucket_name
+    })
     tempo_config        = file("${path.module}/templates/monitoring/tempo-config.yml")
     grafana_datasources = file("${path.module}/templates/monitoring/grafana-datasources.yml")
   })

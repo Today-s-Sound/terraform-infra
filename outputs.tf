@@ -53,6 +53,11 @@ output "s3_bucket_arn" {
   description = "S3 bucket ARN"
 }
 
+output "s3_logs_bucket_name" {
+  value       = module.s3_logs.bucket_name
+  description = "S3 logs bucket name"
+}
+
 # Route53 Outputs
 output "route53_nameservers" {
   value       = module.route53.nameservers

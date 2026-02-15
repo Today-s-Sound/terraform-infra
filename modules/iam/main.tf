@@ -40,7 +40,7 @@ resource "aws_iam_role_policy" "ec2_s3" {
           "s3:GetObject",
           "s3:PutObject"
         ]
-        Resource = "${var.s3_bucket_arn}/*"
+        Resource = [for arn in var.s3_bucket_arns : "${arn}/*"]
       }
     ]
   })

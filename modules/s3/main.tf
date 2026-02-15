@@ -1,11 +1,5 @@
-# S3 Bucket for presigned URL uploads
-
 resource "aws_s3_bucket" "main" {
   bucket = var.bucket_name
-
-  lifecycle {
-    prevent_destroy = true
-  }
 
   tags = {
     Name        = var.bucket_name
@@ -14,6 +8,7 @@ resource "aws_s3_bucket" "main" {
 }
 
 resource "aws_s3_bucket_versioning" "main" {
+  count  = var.enable_versioning ? 1 : 0
   bucket = aws_s3_bucket.main.id
 
   versioning_configuration {
@@ -22,6 +17,7 @@ resource "aws_s3_bucket_versioning" "main" {
 }
 
 resource "aws_s3_bucket_cors_configuration" "main" {
+  count  = var.enable_cors ? 1 : 0
   bucket = aws_s3_bucket.main.id
 
   cors_rule {
@@ -30,5 +26,21 @@ resource "aws_s3_bucket_cors_configuration" "main" {
     allowed_origins = ["*"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3600
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "main" {
+  count  = var.enable_lifecycle ? 1 : 0
+  bucket = aws_s3_bucket.main.id
+
+  rule {
+    id     = "auto-delete"
+    status = "Enabled"
+
+    filter {}
+
+    expiration {
+      days = var.lifecycle_expiration_days
+    }
   }
 }

@@ -66,6 +66,10 @@ variable "s3_bucket_name" {
   description = "S3 bucket name for presigned URL uploads."
 }
 
+variable "s3_logs_bucket_name" {
+  description = "S3 bucket name for application logs."
+}
+
 # Route53
 variable "domain_name" {
   description = "Domain name for Route53 hosted zone. Leave empty to skip."
