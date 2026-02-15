@@ -137,7 +137,9 @@ module "main_server" {
   create_eip           = true
 
   user_data = templatefile("${path.module}/templates/main/userdata.sh.tpl", {
-    compose_content = file("${path.module}/templates/main/docker-compose.yml")
+    compose_content = templatefile("${path.module}/templates/main/docker-compose.yml.tpl", {
+      docker_image = var.docker_image
+    })
     alloy_config    = templatefile("${path.module}/templates/main/alloy-config.alloy.tpl", {
       monitoring_private_ip = module.monitoring.private_ip
     })

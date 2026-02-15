@@ -70,6 +70,12 @@ variable "s3_logs_bucket_name" {
   description = "S3 bucket name for application logs."
 }
 
+# Docker
+variable "docker_image" {
+  description = "Docker Hub image path for the app (e.g. username/todaysound-server)"
+  type        = string
+}
+
 # Route53
 variable "domain_name" {
   description = "Domain name for Route53 hosted zone. Leave empty to skip."
