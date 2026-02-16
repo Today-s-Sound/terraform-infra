@@ -6,7 +6,7 @@ prometheus.remote_write "monitoring" {
 }
 
 prometheus.scrape "spring_boot" {
-  targets    = [{"__address__" = "localhost:8080"}]
+  targets    = [{"__address__" = "app:8080"}]
   metrics_path = "/actuator/prometheus"
   scrape_interval = "15s"
   forward_to = [prometheus.remote_write.monitoring.receiver]
